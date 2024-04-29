@@ -1,3 +1,17 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import User, BoardGames
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'surname', 'nickname', 'avatar',
+    )
+
+
+@admin.register(BoardGames)
+class BoardGamesAdmin(admin.ModelAdmin):
+    list_display = (
+        'title', 'link_to_bgg'
+    )
