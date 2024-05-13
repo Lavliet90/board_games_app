@@ -1,5 +1,6 @@
 from django.db import models
-from user.models import User, BoardGames
+
+from board_games.user.models import User, BoardGames
 
 
 class Meeting(models.Model):

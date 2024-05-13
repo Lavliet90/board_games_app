@@ -21,6 +21,7 @@ DEBUG = env.bool('DEBUG')
 
 ALLOWED_HOSTS = []
 
+TOKEN_BOT = env.str('TOKEN_BOT')
 
 # Application definition
 
@@ -31,8 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'meetings.apps.MeetingsConfig',
-    'user.apps.UserConfig',
+    'board_games.user',
+    'board_games.meetings',
+    'board_games.management',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +127,39 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TOKEN = '6960490432:AAFHUbDb3KVRSJYql4IaGA98YR3S2hglkBs'
 
 PROXY_URL = 'https://telegg.ru/orig/bot'
+
+LOG_LEVEL = env.str('LOG_LEVEL')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+    
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+        },
+    },
+}

@@ -18,6 +18,7 @@ class BoardGames(models.Model):
 
     title = models.CharField(max_length=150)
     link_to_bgg = models.URLField()
+    link_to_rule = models.URLField()
 
     def __str__(self):
         return self.title
