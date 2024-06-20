@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import User, BoardGames
+from .models import TelegramUser, BoardGames
 
 
-@admin.register(User)
+@admin.register(TelegramUser)
 class UserAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'surname', 'nickname', 'avatar',
