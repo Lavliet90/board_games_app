@@ -1,4 +1,6 @@
 import logging
+from django.utils import timezone
+
 from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import sync_to_async
 from .models import Meeting
@@ -93,3 +95,14 @@ async def process_max_users_step(bot, message, states_user):
         await bot.reply_to(
             message, "Ошибка при вводе максимального числа игроков. Попробуйте еще раз."
         )
+
+
+async def show_me_table_meetings(bot, callback_query):
+    await bot.answer_callback_query(callback_query.id)
+    now = timezone.now()
+
+    queryset = Meeting.objects.filter(date__gt=now)
+    meetings = await sync_to_async(list)(queryset)
+
+    message_text = "\n".join([f"{meeting.title} - {meeting.date}" for meeting in meetings])
+    await bot.send_message(callback_query.message.chat.id, f"Список мероприятий:\n{message_text}")
