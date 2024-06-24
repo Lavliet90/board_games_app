@@ -22,6 +22,8 @@ class Meeting(models.Model):
         blank=True,
         null=True
     )
+    location = models.CharField(max_length=100)
+    players = models.ManyToManyField(TelegramUser, blank=True)
 
     # def clean(self):
     #     logging.debug('ROR')

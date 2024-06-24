@@ -1,8 +1,8 @@
 import logging
-from django.utils import timezone
 
 from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import sync_to_async
+
 from .models import Meeting
 from board_games.user.models import TelegramUser
 from .validators import validate_date
@@ -84,9 +84,8 @@ async def process_max_users_step(bot, message, states_user):
     new_meeting = states_user[message.from_user.id]["meeting"]
     try:
         new_meeting.max_users = int(message.text)
-        await sync_to_async(new_meeting.save)()
-        await bot.send_message(message.chat.id, "Мероприятие успешно создано!")
-        states_user.pop(message.from_user.id)
+        await bot.send_message(message.chat.id, "Напишите локацию для встречи")
+        states_user[message.from_user.id]["step"] = "location"
     except ValueError:
         await bot.reply_to(
             message, "Введите корректное число для максимального числа игроков."
@@ -97,12 +96,14 @@ async def process_max_users_step(bot, message, states_user):
         )
 
 
-async def show_me_table_meetings(bot, callback_query):
-    await bot.answer_callback_query(callback_query.id)
-    now = timezone.now()
-
-    queryset = Meeting.objects.filter(date__gt=now)
-    meetings = await sync_to_async(list)(queryset)
-
-    message_text = "\n".join([f"{meeting.title} - {meeting.date}" for meeting in meetings])
-    await bot.send_message(callback_query.message.chat.id, f"Список мероприятий:\n{message_text}")
+async def process_location_step(bot, message, states_user):
+    new_meeting = states_user[message.from_user.id]["meeting"]
+    try:
+        new_meeting.location = message.text
+        await sync_to_async(new_meeting.save)()
+        await bot.send_message(message.chat.id, "Мероприятие успешно создано!")
+        states_user.pop(message.from_user.id)
+    except Exception as e:
+        await bot.reply_to(
+            message, "Ошибка при вводе локации. Попробуйте еще раз."
+        )
