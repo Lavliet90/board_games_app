@@ -10,7 +10,7 @@ from .create_meetings_logic import (
     process_date_step,
     process_max_users_step, process_location_step,
 )
-from .meetings_information import show_me_table_meetings, show_meeting_details, connect_to_meeting
+from .meetings_information import show_me_table_meetings, show_meeting_details, connect_to_meeting, leave_in_meeting
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, parse_mode="HTML")
 telebot.logger.setLevel(settings.LOG_LEVEL)
@@ -90,10 +90,15 @@ async def handle_meeting_callback_query(callback_query):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("connect_to_meeting_"))
 async def handler_connect_to_meeting(callback_query):
-    logger.debug('KOK8')
-    logging.debug('KOK8')
     meeting_id = int(callback_query.data.split("_")[-1])
     await connect_to_meeting(bot, callback_query, meeting_id)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("leave_in_meeting_"))
+async def handler_leave_in_meeting(callback_query):
+    meeting_id = int(callback_query.data.split("_")[-1])
+    await leave_in_meeting(bot, callback_query, meeting_id)
+
 
 
 @bot.message_handler(func=lambda message: True)

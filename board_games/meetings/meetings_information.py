@@ -8,6 +8,7 @@ from telebot import types
 
 from .models import Meeting
 from ..user.models import TelegramUser
+from ..user.user_verification import user_verification
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ async def show_me_table_meetings(bot, callback_query):
 
 
 async def show_meeting_details(bot, callback_query, meeting_id):
+    await bot.answer_callback_query(callback_query.id)
     meeting = await sync_to_async(Meeting.objects.get)(id=meeting_id)
     players = await sync_to_async(list)(meeting.players.all())
     meeting_details = (
@@ -74,10 +76,18 @@ async def show_meeting_details(bot, callback_query, meeting_id):
         )}"
     )
     markup = types.InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton(
-        'Присоедениться к ивенту',
-        callback_data=f'connect_to_meeting_{meeting_id}'
-    )
+
+    user = await user_verification(callback_query)
+    if await sync_to_async(meeting.players.filter(id = user.id).exists)():
+        button = types.InlineKeyboardButton(
+            'Выйти из ивента',
+            callback_data=f'leave_in_meeting_{meeting_id}'
+        )
+    else:
+        button = types.InlineKeyboardButton(
+            'Присоедениться к ивенту',
+            callback_data=f'connect_to_meeting_{meeting_id}'
+        )
     markup.add(button)
     await bot.send_message(
         callback_query.message.chat.id,
@@ -90,19 +100,20 @@ async def show_meeting_details(bot, callback_query, meeting_id):
 async def connect_to_meeting(bot, callback_query, meeting_id):
 
     await bot.answer_callback_query(callback_query.id)
-    telegram_id = callback_query.from_user.id
-
-    nickname = callback_query.from_user.username
     meeting = await sync_to_async(Meeting.objects.get)(id=meeting_id)
+    user = await user_verification(callback_query)
 
-    try:
-        user = await sync_to_async(TelegramUser.objects.get)(telegram_id=telegram_id)
-    except ObjectDoesNotExist:
-        user = await sync_to_async(TelegramUser.objects.create)(
-            telegram_id=telegram_id, nickname=nickname
-        )
+    if await sync_to_async(meeting.players.filter(id=user.id).exists)():
+        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} уже в группе {meeting.title}.')
+    else:
+        await sync_to_async(meeting.players.add)(user)
+        logger.debug('KOK3')
+        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} присоеденился(aсь) к группе {meeting.title}')
 
 
-    await sync_to_async(meeting.players.add)(user)
-    logger.debug('KOK3')
-    await bot.send_message(callback_query.message.chat.id, 'Ты попал')
+async def leave_in_meeting(bot, callback_query, meeting_id):
+    await bot.answer_callback_query(callback_query.id)
+    meeting = await sync_to_async(Meeting.objects.get)(id=meeting_id)
+    user = await user_verification(callback_query)
+    await sync_to_async(meeting.players.remove)(user)
+    await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} вышел(шла) из группы {meeting.title}')

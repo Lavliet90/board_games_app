@@ -6,7 +6,7 @@ from .models import TelegramUser, BoardGames
 @admin.register(TelegramUser)
 class UserAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'surname', 'nickname', 'avatar',
+        'id', 'nickname', 'avatar',
     )
 
 
