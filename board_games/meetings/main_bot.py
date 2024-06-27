@@ -10,7 +10,8 @@ from .create_meetings_logic import (
     process_date_step,
     process_max_users_step, process_location_step,
 )
-from .meetings_information import show_me_table_meetings, show_meeting_details, connect_to_meeting, leave_in_meeting
+from .meetings_information import show_me_table_meetings, show_meeting_details, connect_to_meeting, leave_in_meeting, \
+    event_type_information
 
 bot = AsyncTeleBot(settings.TOKEN_BOT, parse_mode="HTML")
 telebot.logger.setLevel(settings.LOG_LEVEL)
@@ -23,17 +24,32 @@ states_user = {}
 @bot.message_handler(commands=["help", "start"])
 async def send_welcome(message):
     text = (
-        "Hello. I'm a board game event creation bot. Here is the list of my commands:"
+        "Привет, я бот по созданию и поиску мероприятий, какие мероприятия тебя интересуют?"
     )
     markup = types.InlineKeyboardMarkup(row_width=1)
-    button1 = types.InlineKeyboardButton("Start Table", callback_data="start_table")
-    button2 = types.InlineKeyboardButton("Show me meetings", callback_data="show_meetings")
-    markup.add(button1, button2)
+    for key, value in settings.EVENT_TYPE.items():
+        button = types.InlineKeyboardButton(key, callback_data=f'type_event_{key}')
+        markup.add(button)
     await bot.reply_to(message, text, reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: call.data == "start_table")
+@bot.callback_query_handler(func=lambda call: call.data.startswith('type_event_'))
+async def handler_event_type_information(callback_query):
+    event_name = str(callback_query.data.split('_')[-1])
+    await event_type_information(bot, callback_query, event_name)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("show_meetings_"))
 async def handle_callback_query(callback_query):
+    event_name = str(callback_query.data.split('_')[-1])
+    await show_me_table_meetings(bot, callback_query, event_name)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("start_table_"))
+async def handle_callback_query(callback_query):
+    event_name = str(callback_query.data.split('_')[-1])
+    event_type = settings.EVENT_TYPE.get(event_name, "other")
+    states_user[callback_query.from_user.id] = {"event_type": event_type}
     await handle_start_table(bot, callback_query, states_user)
 
 
@@ -77,9 +93,6 @@ async def process_location_step_wrapper(message):
     await process_location_step(bot, message, states_user)
 
 
-@bot.callback_query_handler(func=lambda call: call.data == "show_meetings")
-async def handle_callback_query(callback_query):
-    await show_me_table_meetings(bot, callback_query)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("meeting_"))

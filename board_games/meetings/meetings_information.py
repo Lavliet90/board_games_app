@@ -13,12 +13,35 @@ from ..user.user_verification import user_verification
 logger = logging.getLogger(__name__)
 
 
-async def show_me_table_meetings(bot, callback_query):
+async def event_type_information(bot, callback_query, event_name):
+    await bot.answer_callback_query(callback_query.id)
+
+    logger.debug('KOK4')
+    text = (
+        f"Вы выбрали мероприятия связанные с {event_name}. Выберите, что вас интересует дальше"
+    )
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    button1 = types.InlineKeyboardButton("Создать новое мероприятие", callback_data=f"start_table_{event_name}")
+    button2 = types.InlineKeyboardButton("Покажи уже существующие мероприятия", callback_data=f"show_meetings_{event_name}")
+    markup.add(button1, button2)
+
+    logger.debug('KOK5')
+    await bot.send_message(
+            callback_query.message.chat.id,
+            text,
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
+
+
+async def show_me_table_meetings(bot, callback_query, event_name):
     await bot.answer_callback_query(callback_query.id)
     now = timezone.now()
 
-    queryset = Meeting.objects.filter(date__gt=now).order_by('-date')
+    queryset = Meeting.objects.filter(event_type=event_name, date__gt=now).order_by('-date')
     meetings = await sync_to_async(list)(queryset)
+    logger.debug('KOK111111')
+
 
     if meetings:
         message_text = "\n".join(
@@ -104,11 +127,12 @@ async def connect_to_meeting(bot, callback_query, meeting_id):
     user = await user_verification(callback_query)
 
     if await sync_to_async(meeting.players.filter(id=user.id).exists)():
-        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} уже в группе {meeting.title}.')
+        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} уже в группе "{meeting.title}".')
     else:
+
         await sync_to_async(meeting.players.add)(user)
         logger.debug('KOK3')
-        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} присоеденился(aсь) к группе {meeting.title}')
+        await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} присоеденился(aсь) к группе "{meeting.title}"')
 
 
 async def leave_in_meeting(bot, callback_query, meeting_id):
@@ -116,4 +140,4 @@ async def leave_in_meeting(bot, callback_query, meeting_id):
     meeting = await sync_to_async(Meeting.objects.get)(id=meeting_id)
     user = await user_verification(callback_query)
     await sync_to_async(meeting.players.remove)(user)
-    await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} вышел(шла) из группы {meeting.title}')
+    await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} вышел(шла) из группы "{meeting.title}"')

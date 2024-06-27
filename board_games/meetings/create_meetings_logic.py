@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 async def handle_start_table(bot, callback_query, states_user):
     await bot.answer_callback_query(callback_query.id)
+    logger.debug('KOKOKO')
     telegram_id = callback_query.from_user.id
     nickname = callback_query.from_user.username
 

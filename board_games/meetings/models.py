@@ -6,6 +6,8 @@ from django.db import models
 
 from board_games.user.models import TelegramUser, BoardGames
 
+from board_games import settings
+
 
 class Meeting(models.Model):
     creator = models.ForeignKey(
@@ -24,6 +26,12 @@ class Meeting(models.Model):
     )
     location = models.CharField(max_length=100)
     players = models.ManyToManyField(TelegramUser, blank=True)
+    event_type = models.CharField(
+        max_length=30,
+        choices=[(key, value) for key, value in settings.EVENT_TYPE.items()],
+        default='other'
+    )
+
 
     # def clean(self):
     #     logging.debug('ROR')
