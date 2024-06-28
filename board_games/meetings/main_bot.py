@@ -48,7 +48,10 @@ async def handle_callback_query(callback_query):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("start_table_"))
 async def handle_callback_query(callback_query):
     event_name = str(callback_query.data.split('_')[-1])
-    event_type = settings.EVENT_TYPE.get(event_name, "other")
+    if event_name in settings.EVENT_TYPE:
+        event_type = event_name
+    else:
+        event_type = "other"
     states_user[callback_query.from_user.id] = {"event_type": event_type}
     await handle_start_table(bot, callback_query, states_user)
 

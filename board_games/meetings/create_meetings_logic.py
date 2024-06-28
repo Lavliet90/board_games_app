@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 async def handle_start_table(bot, callback_query, states_user):
     await bot.answer_callback_query(callback_query.id)
-    logger.debug('KOKOKO')
     telegram_id = callback_query.from_user.id
     nickname = callback_query.from_user.username
 
@@ -26,14 +25,16 @@ async def handle_start_table(bot, callback_query, states_user):
     await bot.send_message(
         callback_query.message.chat.id, "Введите название мероприятия:"
     )
-    states_user[callback_query.from_user.id] = {"user": user, "step": "title"}
+    states_user[callback_query.from_user.id] = {'event_type': 'boardgames', "user": user, "step": "title"}
 
 
 async def process_title_step(bot, message, states_user):
     user = states_user[message.from_user.id]["user"]
+    event_type = states_user[message.from_user.id]['event_type']
     try:
         new_meeting = Meeting()
         new_meeting.creator = user
+        new_meeting.event_type =  event_type
         new_meeting.title = message.text
 
         await bot.send_message(message.chat.id, "Введите описание мероприятия:")

@@ -165,4 +165,4 @@ LOGGING = {
     },
 }
 
-EVENT_TYPE = {'board_games': 'Настольные игры', 'other': 'Остальные', }
+EVENT_TYPE = {'boardgames': 'Настольные игры', 'other': 'Остальные', }

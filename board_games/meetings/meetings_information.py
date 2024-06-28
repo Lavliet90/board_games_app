@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 async def event_type_information(bot, callback_query, event_name):
     await bot.answer_callback_query(callback_query.id)
 
-    logger.debug('KOK4')
     text = (
         f"Вы выбрали мероприятия связанные с {event_name}. Выберите, что вас интересует дальше"
     )
@@ -25,7 +24,6 @@ async def event_type_information(bot, callback_query, event_name):
     button2 = types.InlineKeyboardButton("Покажи уже существующие мероприятия", callback_data=f"show_meetings_{event_name}")
     markup.add(button1, button2)
 
-    logger.debug('KOK5')
     await bot.send_message(
             callback_query.message.chat.id,
             text,
@@ -40,8 +38,6 @@ async def show_me_table_meetings(bot, callback_query, event_name):
 
     queryset = Meeting.objects.filter(event_type=event_name, date__gt=now).order_by('-date')
     meetings = await sync_to_async(list)(queryset)
-    logger.debug('KOK111111')
-
 
     if meetings:
         message_text = "\n".join(
@@ -131,7 +127,6 @@ async def connect_to_meeting(bot, callback_query, meeting_id):
     else:
 
         await sync_to_async(meeting.players.add)(user)
-        logger.debug('KOK3')
         await bot.send_message(callback_query.message.chat.id, f'@{user.nickname} присоеденился(aсь) к группе "{meeting.title}"')
 
 
