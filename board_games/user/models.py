@@ -12,6 +12,9 @@ class TelegramUser(models.Model):
     def __str__(self):
         return self.nickname
 
+    def get_organized_meetings(self):
+        return self.organized_events.all()
+
 
 class BoardGames(models.Model):
 

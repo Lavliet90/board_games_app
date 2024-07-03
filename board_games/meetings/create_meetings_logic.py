@@ -34,7 +34,7 @@ async def process_title_step(bot, message, states_user):
     try:
         new_meeting = Meeting()
         new_meeting.creator = user
-        new_meeting.event_type =  event_type
+        new_meeting.event_type = event_type
         new_meeting.title = message.text
 
         await bot.send_message(message.chat.id, "Введите описание мероприятия:")
